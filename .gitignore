@@ -1,6 +1,6 @@
 .piopm
 examples/demo/bin/
 exmaples/demo/obj/
+exmaples/demo/obj
 /dist
-examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfo.cs
-examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfoInputs.cache
+examples/demo/obj/Debug
