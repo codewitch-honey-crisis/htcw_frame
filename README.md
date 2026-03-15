@@ -48,7 +48,7 @@ int res = frame_put(frame_handle, &my_data, sizeof(my_data));
 ```
 There may be a case where you want to unconditionally discard a frame without reading it:
 ```cpp
-discard_frame(frame_handle); // may never need this
+frame_discard(frame_handle); // may never need this
 ```
 
 If you no longer need the frame handle you can free its resources using `frame_destroy()`:
