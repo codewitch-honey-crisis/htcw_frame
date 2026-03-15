@@ -15,6 +15,6 @@ if(NOT DEFINED IDF_TARGET)
 else()
     idf_component_register(
         SRCS "./src/source/frame.c"
-        INCLUDE_DIRS "."
+        INCLUDE_DIRS "./src"
 )
 endif()
