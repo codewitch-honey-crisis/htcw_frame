@@ -137,7 +137,6 @@ void loop() {
             default: {
                 Serial.print("Unknown command received ");
                 Serial.println((int)cmd);
-                frame_discard(frame_handle);
             }
             break;
         }

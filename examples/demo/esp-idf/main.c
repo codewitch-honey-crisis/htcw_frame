@@ -193,7 +193,6 @@ static void loop() {
             break;
             default: {
                 printf("Unknown command received %d\n",(int)cmd);
-                frame_discard(frame_handle);
             }
             break;
         }

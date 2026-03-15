@@ -1,1 +1,4 @@
 .piopm
+examples/demo/bin/
+exmaples/demo/obj/
+/dist
