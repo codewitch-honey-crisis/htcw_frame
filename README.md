@@ -55,7 +55,6 @@ If you no longer need the frame handle you can free its resources using `frame_d
 ```cpp
 frame_destroy(frame_handle);
 ```
-
 ```
 ; PlatformIO INI entry
 [env:node32s]
@@ -65,3 +64,7 @@ framework = arduino
 lib_deps = 
 	codewitch-honey-crisis/htcw_frame
 ```
+
+## About the Demo
+
+The PlatformIO repo portion contains a Demo project under its examples tree which demonstrates using this library in tandem with [htcw_buffers](https://github.com/codewitch-honey-crisis/htcw_buffers) to create a complete and framed serial wire protocol for communicating betweeen the SerialFrameDemo C# app running on a Windows PC and a connected ESP32.
