@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SerialFrameDemo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7fb99dbcffbf84765ca533107f5b2cac8ed7ca18")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e080aedb69e989a18eb650f608ac2707044cb908")]
 [assembly: System.Reflection.AssemblyProductAttribute("SerialFrameDemo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SerialFrameDemo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
