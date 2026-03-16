@@ -11,3 +11,8 @@ examples/demo/obj/SerialFrameDemo.csproj.nuget.g.props
 examples/demo/obj/SerialFrameDemo.csproj.nuget.g.targets
 examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfo.cs
 examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfoInputs.cache
+examples/demo/.vscode/extensions.json
+examples/demo/src/interface_buffers.c
+examples/demo/include/buffers.h
+examples/demo/include/interface_buffers.h
+examples/demo/src/buffers.c

@@ -1,5 +1,6 @@
 // THIS IS THE ARDUINO source file
 // the ESP-IDF source file is esp-idf/main.c
+#ifndef ESP_IDF
 #include <Arduino.h>
 #include "frame.h"
 #include "interface_buffers.h"
@@ -142,3 +143,4 @@ void loop() {
         }
     }
 }
+#endif // !ESP_IDF

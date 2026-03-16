@@ -3,18 +3,19 @@
 buffers_gen_c.py - Parse wire structs from a C header and generate
                    read/write functions for each struct.
 
-Usage: python buffers_gen_c.py [--fixed] [--big-endian] [--prefix <pfx>] [--buffers] [--out <dir>] <header.h>
+Usage: python buffers_gen_c.py [--fixed] [--big-endian] [--prefix <pfx>] [--buffers] [--out <dir>] [--out_h <dir>] <header.h>
 
 Options:
-  --fixed           Use fixed-size serialization for arrays and strings
+  --fixed           Use fixed-size serialization for strings
                    (transmit entire declared size). Without this flag,
-                   arrays/strings are length-prefixed on the wire.
+                   strings are length-prefixed on the wire.
   --big-endian     Generate struct read/write functions using big-endian
                    serialization. Without this flag, little-endian is used.
   --prefix <pfx>   Prepend <pfx> to every generated function name and
                    per-struct #define (not to the MAX_SIZE define).
   --buffers        Also emit buffers.h / buffers.c support files.
   --out <dir>      Directory for generated files (default: same as input).
+  --out_h <dir>    Directory for generated header files (default: same as output).
 
 Outputs:
   <stem>_buffers.h   - declarations for all read/write functions
@@ -25,6 +26,30 @@ Function naming:
   - struct name precedes _read / _write (no LE/BE suffix)
   - e.g. example_data_message_t -> [prefix]example_data_message_read / [prefix]example_data_message_write
   - The shared buffers.h/.c functions use _le and _be suffixes
+"""
+
+"""
+MIT License
+
+Copyright (c) 2026 honey the codewitch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import os
@@ -746,6 +771,17 @@ int buffers_read_int32_t_be (int32_t*  result, buffers_read_callback_t cb, void*
 int buffers_read_int64_t_be (int64_t*  result, buffers_read_callback_t cb, void* state, int* bytes_read);
 int buffers_read_float_be   (float*    result, buffers_read_callback_t cb, void* state, int* bytes_read);
 int buffers_read_double_be  (double*   result, buffers_read_callback_t cb, void* state, int* bytes_read);
+/* aliases */
+int buffers_read_short_be         (short*              result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_unsigned_short_be(unsigned short*     result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_int_be           (int*                result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_unsigned_int_be  (unsigned int*       result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_long_be          (long*               result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_unsigned_long_be (unsigned long*      result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_long_long_be         (long long*          result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_unsigned_long_long_be(unsigned long long* result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_wchar_t_be       (wchar_t*            result, buffers_read_callback_t cb, void* state, int* bytes_read);
+int buffers_read_size_t_be        (size_t*             result, buffers_read_callback_t cb, void* state, int* bytes_read);
 
 /* -------------------------------------------------------------------------
  * Write functions - little-endian (_le variants)
@@ -781,6 +817,17 @@ int buffers_write_int32_t_be (int32_t  value, buffers_write_callback_t cb, void*
 int buffers_write_int64_t_be (int64_t  value, buffers_write_callback_t cb, void* state);
 int buffers_write_float_be   (float    value, buffers_write_callback_t cb, void* state);
 int buffers_write_double_be  (double   value, buffers_write_callback_t cb, void* state);
+/* aliases */
+int buffers_write_short_be         (short              value, buffers_write_callback_t cb, void* state);
+int buffers_write_unsigned_short_be(unsigned short     value, buffers_write_callback_t cb, void* state);
+int buffers_write_int_be           (int                value, buffers_write_callback_t cb, void* state);
+int buffers_write_unsigned_int_be  (unsigned int       value, buffers_write_callback_t cb, void* state);
+int buffers_write_long_be          (long               value, buffers_write_callback_t cb, void* state);
+int buffers_write_unsigned_long_be (unsigned long      value, buffers_write_callback_t cb, void* state);
+int buffers_write_long_long_be         (long long          value, buffers_write_callback_t cb, void* state);
+int buffers_write_unsigned_long_long_be(unsigned long long value, buffers_write_callback_t cb, void* state);
+int buffers_write_wchar_t_be       (wchar_t            value, buffers_write_callback_t cb, void* state);
+int buffers_write_size_t_be        (size_t             value, buffers_write_callback_t cb, void* state);
 
 #ifdef __cplusplus
 }
@@ -1096,6 +1143,60 @@ int buffers_read_size_t_le(size_t* r, buffers_read_callback_t cb, void* s, int* 
     *r = (size_t)tmp; return 0; }
 int buffers_write_size_t_le(size_t v, buffers_write_callback_t cb, void* s) {
     return buffers_write_uint32_t_le((uint32_t)v, cb, s); }
+
+/* -------------------------------------------------------------------------
+ * Big-endian aliases
+ * ------------------------------------------------------------------------- */
+int buffers_read_short_be(short* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_int16_t_be((int16_t*)r, cb, s, bytes_read); }
+int buffers_write_short_be(short v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_int16_t_be((int16_t)v, cb, s); }
+
+int buffers_read_unsigned_short_be(unsigned short* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_uint16_t_be((uint16_t*)r, cb, s, bytes_read); }
+int buffers_write_unsigned_short_be(unsigned short v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_uint16_t_be((uint16_t)v, cb, s); }
+
+int buffers_read_int_be(int* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_int32_t_be((int32_t*)r, cb, s, bytes_read); }
+int buffers_write_int_be(int v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_int32_t_be((int32_t)v, cb, s); }
+
+int buffers_read_unsigned_int_be(unsigned int* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_uint32_t_be((uint32_t*)r, cb, s, bytes_read); }
+int buffers_write_unsigned_int_be(unsigned int v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_uint32_t_be((uint32_t)v, cb, s); }
+
+int buffers_read_long_be(long* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_int32_t_be((int32_t*)r, cb, s, bytes_read); }
+int buffers_write_long_be(long v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_int32_t_be((int32_t)v, cb, s); }
+
+int buffers_read_unsigned_long_be(unsigned long* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_uint32_t_be((uint32_t*)r, cb, s, bytes_read); }
+int buffers_write_unsigned_long_be(unsigned long v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_uint32_t_be((uint32_t)v, cb, s); }
+
+int buffers_read_long_long_be(long long* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_int64_t_be((int64_t*)r, cb, s, bytes_read); }
+int buffers_write_long_long_be(long long v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_int64_t_be((int64_t)v, cb, s); }
+
+int buffers_read_unsigned_long_long_be(unsigned long long* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_uint64_t_be((uint64_t*)r, cb, s, bytes_read); }
+int buffers_write_unsigned_long_long_be(unsigned long long v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_uint64_t_be((uint64_t)v, cb, s); }
+
+int buffers_read_wchar_t_be(wchar_t* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    return buffers_read_int16_t_be((int16_t*)r, cb, s, bytes_read); }
+int buffers_write_wchar_t_be(wchar_t v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_int16_t_be((int16_t)v, cb, s); }
+
+int buffers_read_size_t_be(size_t* r, buffers_read_callback_t cb, void* s, int* bytes_read) {
+    uint32_t tmp; int res = buffers_read_uint32_t_be(&tmp, cb, s, bytes_read); if (res < 0) return res;
+    *r = (size_t)tmp; return 0; }
+int buffers_write_size_t_be(size_t v, buffers_write_callback_t cb, void* s) {
+    return buffers_write_uint32_t_be((uint32_t)v, cb, s); }
 """
 
 
@@ -1103,6 +1204,7 @@ def main():
     args = sys.argv[1:]
     gen_buffers = False
     out_dir = ""
+    out_h_dir = ""
     user_prefix = ""
     fixed_mode = False  # Default: variable-length (length-prefixed) serialization
     big_endian = False
@@ -1114,6 +1216,10 @@ def main():
             if not args:
                 error("--out requires an argument")
             out_dir = args.pop(0)
+        elif opt == '--out_h':
+            if not args:
+                error("--out_h requires an argument")
+            out_h_dir = args.pop(0)
         elif opt == '--prefix':
             if not args:
                 error("--prefix requires an argument")
@@ -1126,7 +1232,7 @@ def main():
             error(f"Unknown option: {opt}")
 
     if len(args) != 1:
-        print(f"Usage: {sys.argv[0]} [--fixed] [--big-endian] [--buffers] [--out <dir>] [--prefix <pfx>] <header.h>", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} [--fixed] [--big-endian] [--buffers] [--out <dir>] [--out_h <dir>] [--prefix <pfx>] <header.h>", file=sys.stderr)
         sys.exit(1)
 
     endian_suffix = "_be" if big_endian else "_le"
@@ -1146,8 +1252,10 @@ def main():
 
     if len(out_dir) == 0:
         out_dir = os.path.dirname(path) or '.'
-
-    h_path = os.path.join(out_dir, f"{stem}_buffers.h")
+    if len(out_h_dir) == 0:
+        out_h_dir = out_dir
+    
+    h_path = os.path.join(out_h_dir, f"{stem}_buffers.h")
     c_path = os.path.join(out_dir, f"{stem}_buffers.c")
 
     with open(h_path, 'w') as f:
@@ -1159,7 +1267,7 @@ def main():
     print(f"Written: {c_path}")
 
     if gen_buffers:
-        bh_path = os.path.join(out_dir, "buffers.h")
+        bh_path = os.path.join(out_h_dir, "buffers.h")
         bc_path = os.path.join(out_dir, "buffers.c")
         with open(bh_path, 'w') as f:
             f.write(BUFFERS_H_CONTENT.lstrip('\n'))

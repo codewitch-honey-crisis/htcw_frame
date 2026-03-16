@@ -1,6 +1,6 @@
 {
     "name": "htcw_frame",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Provides data transport framing and error checking",
     "keywords": ["transport","io","data","frame"],
     "authors": {
@@ -32,7 +32,7 @@
                 "Program.cs",
                 "SerialFrameDemo.csproj",
                 "SerialFrameDemo.slnx",
-                "esp-idf/main.c",
+                "src/main.c",
                 "include/interface.h",
                 "Properties/launchSettings.json",
                 "src/main.cpp"

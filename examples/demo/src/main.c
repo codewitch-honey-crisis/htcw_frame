@@ -1,3 +1,4 @@
+#ifdef ESP_IDF
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
@@ -198,3 +199,4 @@ static void loop() {
         }
     }
 }
+#endif // ESP_IDF
