@@ -43,7 +43,7 @@ int cmd = frame_get(frame_handle, &ptr, &length);
 Writing a frame is straightforward, but unlike reading one, you provide the buffer:
 ```cpp
 // typdef struct { ... } data_t; data_t my_data;
-int res = frame_put(frame_handle, &my_data, sizeof(my_data));
+int res = frame_put(frame_handle, my_cmd, &my_data, sizeof(my_data));
 // again < 0 indicates an error. Otherwise the write was successful
 ```
 There may be a case where you want to unconditionally discard a frame without reading it:

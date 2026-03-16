@@ -4,3 +4,10 @@ exmaples/demo/obj/
 exmaples/demo/obj
 /dist
 examples/demo/obj/Debug
+examples/demo/obj/project.assets.json
+examples/demo/obj/project.nuget.cache
+examples/demo/obj/SerialFrameDemo.csproj.nuget.dgspec.json
+examples/demo/obj/SerialFrameDemo.csproj.nuget.g.props
+examples/demo/obj/SerialFrameDemo.csproj.nuget.g.targets
+examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfo.cs
+examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfoInputs.cache
