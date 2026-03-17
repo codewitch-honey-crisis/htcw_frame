@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="python buffers_gen_cs.py --buffers --namespace SerialFrameDemo --out . .\firmware\include\interface.h" />
+    <Exec Command="python buffers_gen_cs.py --buffers --namespace SerialFrameDemo --out . .\include\interface.h" />
   </Target>
 
 </Project>

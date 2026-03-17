@@ -12,7 +12,7 @@ typedef struct {
     void* write_state;
     uint8_t* read_buffer;
     uint8_t start;
-    uint8_t start_count;
+    size_t byte_count;
 } frame_t;
 
 static uint32_t crc32(const uint8_t* data, size_t length, uint32_t seed) {
@@ -24,6 +24,7 @@ static uint32_t crc32(const uint8_t* data, size_t length, uint32_t seed) {
 }
 static uint8_t cmd_from_frame(const frame_t* frame) {
     const uint8_t* frame_data = frame->read_buffer;
+    if(frame->byte_count<8) return 0;
     if(frame_data[0]<128) return 0;
     return (frame_data[0] == frame_data[1] && frame_data[0] == frame_data[2] && frame_data[0] == frame_data[3] &&
             frame_data[0] == frame_data[4] && frame_data[0] == frame_data[5] && frame_data[0] == frame_data[6] && frame_data[0] == frame_data[7])
@@ -41,117 +42,113 @@ static size_t crc_from_frame(const frame_t* frame) {
     return (size_t)*result;
 }
 static int read_frame_marker(frame_t* frame) {
+    if(frame->byte_count>=8) {
+        return FRAME_ERROR_OVERFLOW;
+    }
     int b = frame->read_cb(frame->read_state);
     if (b < 0) {
         return b;
     }
-    if (frame->start_count == 0) {
+    if (frame->byte_count == 0) {
         if (b < 128) {
             return FRAME_EOF;
         }
         frame->start = b;
-        ++frame->start_count;
+        ++frame->byte_count;
         frame->read_buffer[0] = b;
         return FRAME_EOF;
     }
-    if (frame->start_count < 8) {
+    if (frame->byte_count < 8) {
         if (frame->start != b) {
-            frame->start_count = 0;
+            frame->byte_count = 0;
             frame->start = b;
             return FRAME_EOF;
         }
-        frame->read_buffer[frame->start_count] = frame->start;
-        ++frame->start_count;
-        if (frame->start_count == 8) {
-            frame->start_count = 0;
+        frame->read_buffer[frame->byte_count] = frame->start;
+        ++frame->byte_count;
+        if (frame->byte_count == 8) {
             return 0;
         }
         return FRAME_EOF;
     }
-    frame->start_count = 0;
+    frame->byte_count = 0;
     return FRAME_EOF;
 }
 static int read_frame_header(frame_t* frame) {
-    int res = read_frame_marker(frame);
-    if (res < 0) {
-        return res;
-    }
-    uint8_t* p = frame->read_buffer + 8;
-    size_t remaining = 8;
-
-    while (remaining--) {
-        int b = frame->read_cb(frame->read_state);
-        if (0 > b) {
-            return FRAME_ERROR_UNDERFLOW;
+    if(frame->byte_count<8) {
+        int res = read_frame_marker(frame);
+        if (res < 0) {
+            return res;
         }
-        *p++ = b;
     }
-    return 0;
+    uint8_t* p = frame->read_buffer + frame->byte_count;
+    while(frame->byte_count<FRAME_HEADER_LENGTH) {
+        int b = frame->read_cb(frame->read_state);
+        if (b>-1) {   
+            *p++ = b;
+            ++frame->byte_count;
+        } else {
+            break;
+        }
+    }
+    if(frame->byte_count==FRAME_HEADER_LENGTH) {
+        return 0;
+    }
+    return FRAME_EOF;
 }
 static int read_frame(frame_t* frame) {
-    int res = read_frame_header(frame);
-    if (res < 0) {
-        return res;
+    if(frame->byte_count<FRAME_HEADER_LENGTH) {
+        int res = read_frame_header(frame);
+        if (res < 0) {
+            return res;
+        }
     }
     if (cmd_from_frame(frame) == 0) return FRAME_EOF;
     size_t size = size_from_frame(frame);
-    uint32_t crc = crc_from_frame(frame);
-    uint8_t* p = frame->read_buffer + FRAME_HEADER_LENGTH;
+    uint8_t* p = frame->read_buffer + frame->byte_count;
     if (size > frame->payload_max_size) {
+        frame->byte_count = 0;
         return FRAME_ERROR_OVERFLOW;
     }
-    size_t remaining = size;
-
-    while (remaining--) {
+    
+    while (frame->byte_count<size+FRAME_HEADER_LENGTH) {
         int b = frame->read_cb(frame->read_state);
-        if (0 > b) {
-            return FRAME_ERROR_UNDERFLOW;
+        if (-1 < b) {
+            *p++ = b;    
+            ++frame->byte_count;
+        } else {
+            break;
         }
-        *p++ = b;
+    } 
+    if(frame->byte_count<size+FRAME_HEADER_LENGTH) {
+        return FRAME_EOF;
     }
-    if (crc != crc32(frame->read_buffer + FRAME_HEADER_LENGTH, size, UINT32_MAX / 3)) {
+    if(crc_from_frame(frame)!=crc32(frame->read_buffer+FRAME_HEADER_LENGTH,size,UINT32_MAX/3)) {
+        frame->byte_count=0;
         return FRAME_ERROR_CRC;
     }
     return 0;
 }
 
-static int frame_update(frame_t* frame) {
-    int res;
-    res = read_frame(frame);
-    if (-1 < res) {
-        int cmd = cmd_from_frame(frame);
-        if (cmd > 0) {
-            uint32_t crc = crc32(frame->read_buffer + FRAME_HEADER_LENGTH, size_from_frame(frame), UINT32_MAX / 3);
-            if (crc != crc_from_frame(frame)) {
-                return FRAME_ERROR_CRC;
-            } else {
-                return 0;
-            }
-        }
-    }
-    return res;
-}
 int frame_get(frame_handle_t handle, void** out_data, size_t* out_size) {
     if (handle == NULL) {
         return FRAME_ERROR_ARG;
     }
     frame_t* frame = (frame_t*)handle;
-    int res = cmd_from_frame(frame);
-    if (res != 0) {
-        memset(frame->read_buffer,0,FRAME_HEADER_LENGTH);
-        return res;
+    int res = read_frame(frame);
+    if(res==FRAME_EOF) {
+        printf("FRAME NOT READY: count = %d\n",(int)frame->byte_count);
+        return 0;
     }
-    res = frame_update(frame);
-    if (res < 0) {
-        return res;
-    }
+    if(res<0) return res;
     res = cmd_from_frame(frame);
     if (res == 0) {
-        return FRAME_EOF;
+        return 0;
     }
     *out_data = frame->read_buffer + FRAME_HEADER_LENGTH;
     *out_size = size_from_frame(frame);
     memset(frame->read_buffer,0,FRAME_HEADER_LENGTH);
+    frame->byte_count = 0;
     return res;
 }
 int frame_discard(frame_handle_t handle) {
@@ -160,6 +157,7 @@ int frame_discard(frame_handle_t handle) {
     }
     frame_t* frame = (frame_t*)handle;
     memset(frame->read_buffer,0,FRAME_HEADER_LENGTH);
+    frame->byte_count = 0;
     return 0;
 }
 int frame_put(frame_handle_t handle, uint8_t cmd, const void* payload, size_t size) {

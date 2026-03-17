@@ -16,3 +16,10 @@ examples/demo/src/interface_buffers.c
 examples/demo/include/buffers.h
 examples/demo/include/interface_buffers.h
 examples/demo/src/buffers.c
+examples/demo/.vs/SerialFrameDemo.slnx/v17/DocumentLayout.backup.json
+.gitignore
+.gitignore
+examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfo.cs
+examples/demo/obj/Debug/net8.0/SerialFrameDemo.AssemblyInfoInputs.cache
+examples/demo/Buffers.cs
+examples/demo/InterfaceBuffers.cs
