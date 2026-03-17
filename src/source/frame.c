@@ -137,7 +137,6 @@ int frame_get(frame_handle_t handle, void** out_data, size_t* out_size) {
     frame_t* frame = (frame_t*)handle;
     int res = read_frame(frame);
     if(res==FRAME_EOF) {
-        printf("FRAME NOT READY: count = %d\n",(int)frame->byte_count);
         return 0;
     }
     if(res<0) return res;

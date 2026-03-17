@@ -1,5 +1,5 @@
-#ifndef HTCW_FRAME
-#define HTCW_FRAME
+#ifndef HTCW_FRAME_H
+#define HTCW_FRAME_H
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -61,4 +61,4 @@ int frame_put(frame_handle_t handle, uint8_t cmd, const void* payload, size_t si
 #ifdef __cplusplus
 }
 #endif
-#endif // HTCW_FRAME
+#endif // HTCW_FRAME_H
